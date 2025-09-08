@@ -10,10 +10,12 @@ export default function SelectorEditor({ editingKey, selectors, updateSelectors 
   const [isSelecting, setIsSelecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function addSelector() {
-    if (!newSelector.trim()) return;
-    updateSelectors([...selectors, newSelector.trim()]);
-    setNewSelector("");
+  function addSelector(input?: string) {
+    let selector = input || newSelector;
+    selector = selector.trim();
+    if (!selector) return;
+    updateSelectors([...selectors, selector]);
+    if (!input) setNewSelector("");
   }
 
   async function checkForCompletedSelection() {
@@ -24,7 +26,7 @@ export default function SelectorEditor({ editingKey, selectors, updateSelectors 
       const { flag, selector, timestamp } = result;
       if (Date.now() - timestamp < selectionValidityMinutes * unitDurations.minute) {
         if (flag) return setIsSelecting(true);
-        setNewSelector(selector);
+        addSelector(selector);
         await removeItem(selectionKey);
       }
     } catch (error) {
@@ -51,9 +53,11 @@ export default function SelectorEditor({ editingKey, selectors, updateSelectors 
 
   // Check for completed selection when popup opens
   useEffect(() => {
-    checkForCompletedSelection();
     getItem(editingKey, undefined, false)
-      .then((result) => result && updateSelectors(result))
+      .then((result) => {
+        if (result) updateSelectors(result);
+        checkForCompletedSelection();
+      })
       .catch((error) => console.error("Error restoring editing state:", error));
   }, [editingKey]);
 
@@ -84,7 +88,7 @@ export default function SelectorEditor({ editingKey, selectors, updateSelectors 
           {isSelecting ? "Selecting..." : "Select"}
         </button>
         <button
-          onClick={addSelector}
+          onClick={() => addSelector()}
           disabled={!newSelector.trim()}
           className="px-2 py-1 bg-blue-600 text-white rounded text-sm disabled:opacity-50 hover:bg-blue-700"
           title="Add selector"

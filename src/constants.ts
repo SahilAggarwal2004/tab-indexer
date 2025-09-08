@@ -26,8 +26,6 @@ const focusableElements = [
 
 export const focusableSelector = focusableElements.join(", ");
 
-export const matchPatterns = ["<all_urls>"];
-
 export const selectionKey = "completed-selection";
 
 export const selectionValidityMinutes = 5;

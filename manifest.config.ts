@@ -1,5 +1,4 @@
 import { defineManifest } from "@crxjs/vite-plugin";
-import { matchPatterns } from "./src/constants";
 import packageJson from "./package.json";
 
 const { version } = packageJson;
@@ -26,7 +25,6 @@ export default defineManifest({
   version_name: version,
   description: "A browser extension that lets you customize and control the tab order of elements on webpages for smoother navigation",
   permissions: ["storage", "tabs"],
-  host_permissions: matchPatterns,
   icons,
   action: {
     default_title: "Tab Indexer - Redefine how you tab through the web",
@@ -36,7 +34,7 @@ export default defineManifest({
   background: { service_worker: "src/background.ts" },
   content_scripts: [
     {
-      matches: matchPatterns,
+      matches: ["http://*/*", "https://*/*"],
       js: ["src/script.ts"],
       run_at: "document_start",
     },
