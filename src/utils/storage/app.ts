@@ -1,4 +1,4 @@
-import { source } from "../../constants";
+import { storageKey } from "../../constants";
 import { ConfigStorage, PartialTabConfig, TabConfig } from "../../types";
 import { getItem, setItem } from "./browser";
 
@@ -6,13 +6,13 @@ let storage: ConfigStorage;
 let storageChangeListeners: Array<(value: any) => any> = [];
 
 const storageChangeListener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-  if (changes[source]) updateStorage(changes[source].newValue, false);
+  if (changes[storageKey]) updateStorage(changes[storageKey].newValue, false);
 };
 
 export async function getStorage() {
   if (storage) return storage;
   return new Promise<ConfigStorage>(async (resolve) => {
-    storage = await getItem(source, { configs: [], isEnabled: true });
+    storage = await getItem(storageKey, { configs: [], isEnabled: true });
     resolve(storage);
   });
 }
@@ -27,7 +27,7 @@ export function revokeStorageChangeListeners() {
 }
 
 async function updateStorage(newStorage: ConfigStorage, persist = true) {
-  if (persist) await setItem(source, newStorage);
+  if (persist) await setItem(storageKey, newStorage);
   storage = newStorage;
   storageChangeListeners.forEach((listener) => listener(newStorage));
 }

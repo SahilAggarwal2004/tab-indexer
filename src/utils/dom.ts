@@ -1,4 +1,18 @@
-import { excludedAttributes, excludedClasses, focusableSelector, highlightClass, overlayClass, uniqueAttributes } from "../constants";
+import { memoize } from "utility-kit";
+import {
+  excludedAttributes,
+  excludedClasses,
+  focusableSelector,
+  frameworkPrefixRegex,
+  hashRegex,
+  highlightClass,
+  overlayClass,
+  splitRegex,
+  statePrefixRegex,
+  stateTokens,
+  transitionRegex,
+  uniqueAttributes,
+} from "../constants";
 
 let overlay: HTMLElement | null = null;
 let highlightStyle: HTMLStyleElement | null = null;
@@ -10,8 +24,34 @@ export function createOverlay() {
   if (overlay) document.body.appendChild(overlay);
 }
 
+const isUnstableClass = memoize((cls: string): boolean => {
+  if (!cls) return false;
+
+  // Priority 1: State-related prefixes
+  if (statePrefixRegex.test(cls)) return true;
+
+  // Priority 2: Framework/hydration prefixes
+  if (frameworkPrefixRegex.test(cls)) return true;
+
+  // Priority 3: Transition/animation related classes
+  if (transitionRegex.test(cls)) return true;
+
+  // Priority 4: Hashed/numeric-like sequences
+  if (hashRegex.test(cls)) return true;
+
+  // Priority 5: Tokenized state keywords
+  const tokens = cls
+    .split(splitRegex)
+    .filter(Boolean)
+    .map((t) => t.toLowerCase());
+  if (tokens.some((t) => stateTokens.has(t))) return true;
+
+  // Default: treat as stable
+  return false;
+});
+
 // Get element classes excluding known unstable classes
-const getCleanClasses = (el: HTMLElement) => Array.from(el.classList).filter((cls) => !excludedClasses.includes(cls));
+const getCleanClasses = (el: HTMLElement) => Array.from(el.classList).filter((cls) => !excludedClasses.has(cls) && !isUnstableClass(cls));
 
 export function generateSelector(element: HTMLElement): string | null {
   if (!element) return null;
@@ -94,7 +134,7 @@ export function generateSelector(element: HTMLElement): string | null {
   const allAttributes = Array.from(element.attributes);
 
   for (const attr of allAttributes) {
-    if (!excludedAttributes.includes(attr.name) && attr.value) {
+    if (!excludedAttributes.has(attr.name) && attr.value) {
       const attrSelector = `${tagName}[${attr.name}="${CSS.escape(attr.value)}"]`;
       if (document.querySelectorAll(attrSelector).length === 1) return attrSelector;
     }
