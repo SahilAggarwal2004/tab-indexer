@@ -3,9 +3,9 @@ export async function setItem(key: string, value: any, local = true) {
   return new Promise<void>((resolve) => storage.set({ [key]: value }, resolve));
 }
 
-export async function getItem<T = any>(key: string, fallbackValue?: T, local = true): Promise<T> {
+export async function getItem<T = any>(key: string, fallbackValue?: T, local = true) {
   const storage = local ? chrome.storage.local : chrome.storage.session;
-  return new Promise<T>((resolve) => storage.get(key, (result) => resolve(result[key] ?? fallbackValue)));
+  return new Promise<T>((resolve) => storage.get(key, (result) => resolve((result[key] ?? fallbackValue) as T)));
 }
 
 export async function removeItem(key: string, local = true) {

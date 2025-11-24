@@ -6,7 +6,7 @@ let storage: ConfigStorage;
 let storageChangeListeners: Array<(value: any) => any> = [];
 
 const storageChangeListener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-  if (changes[storageKey]) updateStorage(changes[storageKey].newValue, false);
+  if (changes[storageKey]) updateStorage(changes[storageKey].newValue as ConfigStorage, false);
 };
 
 export async function getStorage() {

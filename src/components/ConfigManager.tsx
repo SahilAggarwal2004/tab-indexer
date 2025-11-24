@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { ConfigManagerProps, TabConfig } from "../types";
 import SelectorEditor from "./SelectorEditor";
 import { EditIcon, TrashIcon, SaveIcon, XIcon } from "lucide-react";
@@ -9,7 +9,7 @@ import { deleteConfig, upsertConfig } from "../utils/storage/app";
 export default function ConfigManager({ cleanUrl, config, isActive }: ConfigManagerProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedConfig, setEditedConfig] = useState<TabConfig>(config);
-  const editingKey = useMemo(() => getEditingKey(config, cleanUrl), [cleanUrl, config.id]);
+  const editingKey = getEditingKey(config, cleanUrl);
 
   const clearEditingStateFlag = () => removeItem(editingKey, false).catch((error) => console.error("Error clearing editing state:", error));
 

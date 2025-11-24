@@ -7,6 +7,6 @@ import manifest from "./manifest.config";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [tailwindcss(), react(), crx({ manifest })],
+  plugins: [tailwindcss(), react({ babel: { plugins: ["babel-plugin-react-compiler"] } }), crx({ manifest })],
   server: { port: 3000 },
 });
