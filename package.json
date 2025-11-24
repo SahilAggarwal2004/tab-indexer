@@ -1,6 +1,6 @@
 {
   "name": "tab-indexer",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A browser extension that lets you customize and control the tab order of elements on webpages for smoother navigation",
   "author": "Sahil Aggarwal <aggarwalsahil2004@gmail.com>",
   "license": "MIT",

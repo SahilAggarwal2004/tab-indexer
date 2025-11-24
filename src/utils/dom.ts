@@ -6,6 +6,7 @@ import {
   frameworkPrefixRegex,
   hashRegex,
   highlightClass,
+  numericSuffixRegex,
   overlayClass,
   splitRegex,
   statePrefixRegex,
@@ -24,23 +25,23 @@ export function createOverlay() {
   if (overlay) document.body.appendChild(overlay);
 }
 
-const isUnstableClass = memoize((cls: string): boolean => {
-  if (!cls) return false;
+const isUnstableToken = memoize((token: string): boolean => {
+  if (!token) return false;
 
   // Priority 1: State-related prefixes
-  if (statePrefixRegex.test(cls)) return true;
+  if (statePrefixRegex.test(token)) return true;
 
   // Priority 2: Framework/hydration prefixes
-  if (frameworkPrefixRegex.test(cls)) return true;
+  if (frameworkPrefixRegex.test(token)) return true;
 
   // Priority 3: Transition/animation related classes
-  if (transitionRegex.test(cls)) return true;
+  if (transitionRegex.test(token)) return true;
 
   // Priority 4: Hashed/numeric-like sequences
-  if (hashRegex.test(cls)) return true;
+  if (hashRegex.test(token)) return true;
 
   // Priority 5: Tokenized state keywords
-  const tokens = cls
+  const tokens = token
     .split(splitRegex)
     .filter(Boolean)
     .map((t) => t.toLowerCase());
@@ -50,23 +51,36 @@ const isUnstableClass = memoize((cls: string): boolean => {
   return false;
 });
 
+const isUnstableId = memoize((id: string): boolean => {
+  if (!id) return false;
+  return numericSuffixRegex.test(id) || isUnstableToken(id);
+});
+
 // Get element classes excluding known unstable classes
-const getCleanClasses = (el: HTMLElement) => Array.from(el.classList).filter((cls) => !excludedClasses.has(cls) && !isUnstableClass(cls));
+const getCleanClasses = (el: HTMLElement) => Array.from(el.classList).filter((cls) => !excludedClasses.has(cls) && !isUnstableToken(cls));
 
 export function generateSelector(element: HTMLElement): string | null {
   if (!element) return null;
 
   // Priority 1: ID selector
-  if (element.id) return `#${CSS.escape(element.id)}`;
+  const id = element.id;
+  if (id && !isUnstableId(id)) return `#${CSS.escape(id)}`;
 
   // Priority 2: Unique class combination
   const cleanClasses = getCleanClasses(element);
   if (cleanClasses.length) {
+    // try single stable classes first
+    for (const cls of cleanClasses) {
+      const classSelector = `.${CSS.escape(cls)}`;
+      if (document.querySelectorAll(classSelector).length === 1) return classSelector;
+    }
+
+    // then try full class combination
     const classSelector = `.${cleanClasses.map((cls) => CSS.escape(cls)).join(".")}`;
     if (document.querySelectorAll(classSelector).length === 1) return classSelector;
   }
 
-  // Priority 3: Stable attribute-based selectors
+  // Priority 3: Stable attribute based selectors
   for (const attr of uniqueAttributes) {
     const value = element.getAttribute(attr);
     if (value) {
@@ -76,12 +90,11 @@ export function generateSelector(element: HTMLElement): string | null {
   }
 
   // Priority 4: Tag + short unique text content (buttons, links)
-  if (element.textContent?.length < 50) {
-    const text = element.textContent.trim();
+  const text = element.textContent.trim();
+  if (text.length > 0 && text.length < 50) {
     const tagName = element.tagName.toLowerCase();
-    const matchingElements = Array.from(document.querySelectorAll(tagName)).filter(({ textContent }) => textContent?.trim() === text);
-
-    if (matchingElements.length === 1) {
+    const matches = Array.from(document.querySelectorAll(tagName)).filter(({ textContent }) => textContent?.trim() === text);
+    if (matches.length === 1) {
       const siblings = Array.from(element.parentElement?.children || []).filter((el) => el.tagName === element.tagName);
       const index = siblings.indexOf(element) + 1;
       const nthSelector = `${tagName}:nth-of-type(${index})`;
@@ -89,7 +102,7 @@ export function generateSelector(element: HTMLElement): string | null {
     }
   }
 
-  // Priority 5: Structural path (classes or nth-child)
+  // Priority 5: Structural path (classes or nth child)
   const path: string[] = [];
   let current: Element | null = element;
   let depth = 0;
@@ -102,11 +115,11 @@ export function generateSelector(element: HTMLElement): string | null {
     if (parent) {
       const currentCleanClasses = getCleanClasses(current as HTMLElement);
 
-      // Use unique class combination at this level
+      // unique class combination at this level
       if (currentCleanClasses.length) {
         const classSelector = `${tagName}.${currentCleanClasses.map((cls) => CSS.escape(cls)).join(".")}`;
-        const matchingAtLevel = parent.querySelectorAll(`:scope > ${classSelector}`);
-        if (matchingAtLevel.length === 1) {
+        const localMatches = parent.querySelectorAll(`:scope > ${classSelector}`);
+        if (localMatches.length === 1) {
           path.unshift(classSelector);
           current = parent;
           depth++;
@@ -114,7 +127,7 @@ export function generateSelector(element: HTMLElement): string | null {
         }
       }
 
-      // Fallback to nth-child
+      // fallback to nth child
       const siblings = Array.from(parent.children);
       const index = siblings.indexOf(current) + 1;
       path.unshift(`${tagName}:nth-child(${index})`);
@@ -129,14 +142,12 @@ export function generateSelector(element: HTMLElement): string | null {
     if (document.querySelectorAll(structuralSelector).length === 1) return structuralSelector;
   }
 
-  // Priority 6: Last resort - any remaining unique attribute
+  // Priority 6: Last resort any remaining unique attribute
   const tagName = element.tagName.toLowerCase();
-  const allAttributes = Array.from(element.attributes);
-
-  for (const attr of allAttributes) {
+  for (const attr of Array.from(element.attributes)) {
     if (!excludedAttributes.has(attr.name) && attr.value) {
-      const attrSelector = `${tagName}[${attr.name}="${CSS.escape(attr.value)}"]`;
-      if (document.querySelectorAll(attrSelector).length === 1) return attrSelector;
+      const sel = `${tagName}[${attr.name}="${CSS.escape(attr.value)}"]`;
+      if (document.querySelectorAll(sel).length === 1) return sel;
     }
   }
 

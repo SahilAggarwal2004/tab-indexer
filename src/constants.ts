@@ -30,6 +30,8 @@ export const frameworkPrefixRegex = /^(?:ng-|v-|svelte-|sc-|css-|tw-|tailwind-)/
 
 export const hashRegex = /(^[a-z]{1,3}-?\d{3,}$)|[a-f0-9]{5,}|[_-][a-z0-9]{5,}$/i;
 
+export const numericSuffixRegex = /^[a-z_-]+\d+$/i;
+
 export const selectionKey = "completed-selection";
 
 export const selectionValidityMinutes = 5;
