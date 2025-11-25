@@ -25,6 +25,8 @@ export function createOverlay() {
   if (overlay) document.body.appendChild(overlay);
 }
 
+export const isUniqueSelector = (selector: string, parent = document.body) => parent.querySelectorAll(selector).length === 1;
+
 const isUnstableToken = memoize((token: string): boolean => {
   if (!token) return false;
 
@@ -72,12 +74,12 @@ export function generateSelector(element: HTMLElement): string | null {
     // try single stable classes first
     for (const cls of cleanClasses) {
       const classSelector = `.${CSS.escape(cls)}`;
-      if (document.querySelectorAll(classSelector).length === 1) return classSelector;
+      if (isUniqueSelector(classSelector)) return classSelector;
     }
 
     // then try full class combination
     const classSelector = `.${cleanClasses.map((cls) => CSS.escape(cls)).join(".")}`;
-    if (document.querySelectorAll(classSelector).length === 1) return classSelector;
+    if (isUniqueSelector(classSelector)) return classSelector;
   }
 
   // Priority 3: Stable attribute based selectors
@@ -85,7 +87,7 @@ export function generateSelector(element: HTMLElement): string | null {
     const value = element.getAttribute(attr);
     if (value) {
       const attrSelector = `[${attr}="${CSS.escape(value)}"]`;
-      if (document.querySelectorAll(attrSelector).length === 1) return attrSelector;
+      if (isUniqueSelector(attrSelector)) return attrSelector;
     }
   }
 
@@ -98,7 +100,7 @@ export function generateSelector(element: HTMLElement): string | null {
       const siblings = Array.from(element.parentElement?.children || []).filter((el) => el.tagName === element.tagName);
       const index = siblings.indexOf(element) + 1;
       const nthSelector = `${tagName}:nth-of-type(${index})`;
-      if (document.querySelectorAll(nthSelector).length === 1) return nthSelector;
+      if (isUniqueSelector(nthSelector)) return nthSelector;
     }
   }
 
@@ -118,8 +120,7 @@ export function generateSelector(element: HTMLElement): string | null {
       // unique class combination at this level
       if (currentCleanClasses.length) {
         const classSelector = `${tagName}.${currentCleanClasses.map((cls) => CSS.escape(cls)).join(".")}`;
-        const localMatches = parent.querySelectorAll(`:scope > ${classSelector}`);
-        if (localMatches.length === 1) {
+        if (isUniqueSelector(`:scope > ${classSelector}`, parent)) {
           path.unshift(classSelector);
           current = parent;
           depth++;
@@ -139,7 +140,7 @@ export function generateSelector(element: HTMLElement): string | null {
 
   if (path.length) {
     const structuralSelector = path.join(" > ");
-    if (document.querySelectorAll(structuralSelector).length === 1) return structuralSelector;
+    if (isUniqueSelector(structuralSelector)) return structuralSelector;
   }
 
   // Priority 6: Last resort any remaining unique attribute
@@ -147,7 +148,7 @@ export function generateSelector(element: HTMLElement): string | null {
   for (const attr of Array.from(element.attributes)) {
     if (!excludedAttributes.has(attr.name) && attr.value) {
       const sel = `${tagName}[${attr.name}="${CSS.escape(attr.value)}"]`;
-      if (document.querySelectorAll(sel).length === 1) return sel;
+      if (isUniqueSelector(sel)) return sel;
     }
   }
 

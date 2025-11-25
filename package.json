@@ -1,6 +1,6 @@
 {
   "name": "tab-indexer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A browser extension that lets you customize and control the tab order of elements on webpages for smoother navigation",
   "author": "Sahil Aggarwal <aggarwalsahil2004@gmail.com>",
   "license": "MIT",
@@ -11,8 +11,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "zip": "bestzip tab-indexer.zip dist",
-    "build": "tsc -b && vite build && pnpm run zip",
+    "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -34,14 +33,14 @@
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.22",
     "babel-plugin-react-compiler": "^1.0.0",
-    "bestzip": "^2.2.1",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.47.0",
-    "vite": "^7.2.4"
+    "typescript-eslint": "^8.48.0",
+    "vite": "^7.2.4",
+    "vite-plugin-zip-pack": "^1.2.4"
   }
 }
