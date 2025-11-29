@@ -1,5 +1,5 @@
 import { PlusIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import ConfigManager from "./components/ConfigManager";
 import useCurrentUrl from "./hooks/useCurrentUrl";
@@ -13,7 +13,7 @@ export default function App() {
   const [isEnabled, setIsEnabled] = useState<boolean>(true);
   const [currentUrl, cleanUrl] = useCurrentUrl();
 
-  const activeConfig = findMatchingConfig(configs, currentUrl);
+  const activeConfig = useMemo(() => findMatchingConfig(configs, currentUrl), [currentUrl, configs]);
 
   async function handleCreateConfig() {
     const newConfig = {

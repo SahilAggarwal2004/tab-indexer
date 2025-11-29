@@ -1,6 +1,6 @@
 {
   "name": "tab-indexer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A browser extension that lets you customize and control the tab order of elements on webpages for smoother navigation",
   "author": "Sahil Aggarwal <aggarwalsahil2004@gmail.com>",
   "license": "MIT",
@@ -16,7 +16,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "lucide-react": "^0.554.0",
+    "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-reorder-list": "^0.8.5",
