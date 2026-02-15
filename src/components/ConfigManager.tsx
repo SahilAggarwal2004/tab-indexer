@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useMemo } from "react";
-import { ConfigManagerProps, TabConfig } from "../types";
+import { ConfigManagerProps, Selectors, TabConfig } from "../types";
 import SelectorEditor from "./SelectorEditor";
 import { EditIcon, TrashIcon, SaveIcon, XIcon } from "lucide-react";
 import { getItem, removeItem, setItem } from "../utils/storage/browser";
@@ -33,7 +34,7 @@ export default function ConfigManager({ cleanUrl, config, isActive }: ConfigMana
   }, [editingKey]);
 
   useEffect(() => {
-    if (isEditing) setItem(editingKey, editedConfig.selectors, false).catch((error) => console.error("Error setting editing state:", error));
+    if (isEditing) setItem<Selectors>(editingKey, editedConfig.selectors, false).catch((error) => console.error("Error setting editing state:", error));
   }, [isEditing, editingKey]);
 
   return (

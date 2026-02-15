@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 
 import ConfigManager from "./components/ConfigManager";
 import useCurrentUrl from "./hooks/useCurrentUrl";
-import { TabConfig } from "./types";
+import { Selectors, TabConfig } from "./types";
 import { upsertConfig, findMatchingConfig, setEnabled, registerStorageChangeListener, revokeStorageChangeListeners, getStorage } from "./utils/storage/app";
 import { setItem } from "./utils/storage/browser";
 import { getEditingKey } from "./utils/functions";
@@ -26,7 +26,7 @@ export default function App() {
 
     try {
       const editingKey = getEditingKey(newConfig);
-      await setItem(editingKey, newConfig.selectors, false);
+      await setItem<Selectors>(editingKey, newConfig.selectors, false);
     } catch (error) {
       console.error("Error setting editing state:", error);
     }
@@ -48,7 +48,7 @@ export default function App() {
   }, []);
 
   return (
-    <div className="w-96 h-[600px] bg-white">
+    <div className="w-96 h-150 bg-white">
       <div className="bg-blue-600 text-white p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ export default function App() {
         </div>
 
         {cleanUrl && (
-          <div className="space-y-2 max-h-[225px] overflow-y-scroll">
+          <div className="space-y-2 max-h-56.25 overflow-y-scroll">
             {configs.map((config) => (
               <ConfigManager key={config.id} config={config} cleanUrl={cleanUrl} isActive={activeConfig?.url === config.url} />
             ))}

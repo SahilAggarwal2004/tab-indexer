@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import ReorderList from "react-reorder-list";
 import { PlusIcon, TrashIcon, MousePointerIcon } from "lucide-react";
 import { getItem, removeItem, setItem } from "../utils/storage/browser";
 import { selectionKey, selectionValidityMinutes, unitDurations } from "../constants";
-import { SelectorEditorProps } from "../types";
+import { CompletedSelection, SelectorEditorProps, Selectors } from "../types";
 
 export default function SelectorEditor({ editingKey, selectors, updateSelectors }: SelectorEditorProps) {
   const [newSelector, setNewSelector] = useState("");
@@ -20,7 +21,7 @@ export default function SelectorEditor({ editingKey, selectors, updateSelectors 
 
   async function checkForCompletedSelection() {
     try {
-      const result = await getItem(selectionKey);
+      const result = await getItem<CompletedSelection>(selectionKey);
       if (!result) return;
 
       const { flag, selector, timestamp } = result;
@@ -63,7 +64,7 @@ export default function SelectorEditor({ editingKey, selectors, updateSelectors 
 
   // Save editing state whenever selectors change
   useEffect(() => {
-    setItem(editingKey, selectors, false).catch((error) => console.error("Error saving editing state:", error));
+    setItem<Selectors>(editingKey, selectors, false).catch((error) => console.error("Error saving editing state:", error));
   }, [selectors, editingKey]);
 
   return (
@@ -103,13 +104,9 @@ export default function SelectorEditor({ editingKey, selectors, updateSelectors 
         <div className="space-y-1">
           <p className="text-xs text-gray-600 font-medium">Tab Order (drag to reorder):</p>
           <ReorderList
+            preserveOrder={false}
             animationDuration={200}
-            preserveOrder
-            watchChildrenUpdates
-            onPositionChange={({ newItems, revert }) => {
-              updateSelectors(newItems.map((item) => (item as any).props.children[1].props.value));
-              revert();
-            }}
+            onPositionChange={({ newOrder }) => updateSelectors(newOrder.flatMap((key) => selectors[key as number] || []))}
           >
             {selectors.map((item, index) => (
               <div key={index} className="flex items-center gap-2 bg-gray-50 p-2 rounded border">

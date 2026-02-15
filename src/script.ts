@@ -1,11 +1,11 @@
 import { focusableAttributes, selectionKey } from "./constants";
-import { ConfigStorage } from "./types";
+import { Callback, CompletedSelection, ConfigStorage } from "./types";
 import { clearHighlights, createOverlay, generateSelector, getTargetElement, hasFocusable, highlightElement, initDOM, removeOverlay, showTemporaryMessage } from "./utils/dom";
 import { findMatchingConfig, getStorage, registerStorageChangeListener, setEnabled } from "./utils/storage/app";
 import { removeItem, setItem } from "./utils/storage/browser";
 import { applyConfig, resetTabIndices } from "./utils/tabIndexer";
 
-const debounceTimers = new Map<Function, number>();
+const debounceTimers = new Map<Callback, number>();
 
 let controller: AbortController | null = null;
 let domObserver: MutationObserver | null = null;
@@ -23,7 +23,7 @@ async function applyConfigIfExists(storage?: ConfigStorage) {
   }
 }
 
-export function debounce(callback: Function, delay = 250) {
+export function debounce(callback: Callback, delay = 250) {
   const existing = debounceTimers.get(callback);
   if (existing) clearTimeout(existing);
 
@@ -48,7 +48,7 @@ function handleElementClick(event: MouseEvent) {
 
   if (selector) {
     // Store the selected selector in Chrome storage for the popup to retrieve
-    setItem(selectionKey, { flag: false, selector, timestamp: Date.now() })
+    setItem<CompletedSelection>(selectionKey, { flag: false, selector, timestamp: Date.now() })
       .then(async () => {
         showTemporaryMessage(`Selected: ${selector}`);
         stopElementSelection();
@@ -60,7 +60,7 @@ function handleElementClick(event: MouseEvent) {
   } else showTemporaryMessage("Unable to generate a reliable selector for this element");
 }
 
-function handleEvent(event: MouseEvent, callback: Function) {
+function handleEvent(event: MouseEvent, callback: Callback<[HTMLElement]>) {
   if (!isSelectingMode) return;
 
   const element = getTargetElement(event);
@@ -159,7 +159,7 @@ function setupMessageListener() {
 }
 
 async function startElementSelection() {
-  await setItem(selectionKey, { flag: true, timestamp: Date.now() });
+  await setItem<CompletedSelection>(selectionKey, { flag: true, timestamp: Date.now() });
 
   // Stop any existing selection first
   if (isSelectingMode) stopElementSelection();
